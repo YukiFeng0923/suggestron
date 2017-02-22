@@ -4,12 +4,13 @@ class TopicsController < ApplicationController
   # GET /topics
   # GET /topics.json
   def index
-    @topics = Topic.all
+    @topics = Topic.all.sort_by{|topic| topic.votes.count}.reverse
   end
 
   # GET /topics/1
   # GET /topics/1.json
   def show
+    @topic=Topic.find(params[:id])
   end
 
   # GET /topics/new
@@ -19,23 +20,17 @@ class TopicsController < ApplicationController
 
   # GET /topics/1/edit
   def edit
+    @topic=Topic.find(params[:id])
   end
 
   # POST /topics
   # POST /topics.json
   def create
     @topic = Topic.new(topic_params)
-
-    respond_to do |format|
-      if @topic.save
-        format.html { redirect_to @topic, notice: 'Topic was successfully created.' }
-        format.json { render :show, status: :created, location: @topic }
-      else
-        format.html { render :new }
-        format.json { render json: @topic.errors, status: :unprocessable_entity }
-      end
+        @topic.save
+        redirect_to topics_path
     end
-  end
+
 
   # PATCH/PUT /topics/1
   # PATCH/PUT /topics/1.json
@@ -64,9 +59,15 @@ class TopicsController < ApplicationController
   def upvote
     @topic = Topic.find(params[:id])
     @topic.votes.create
-    redirect_to(topics_path)
+    redirect_to topics_path
   end
-  
+
+  def downvote
+    @topic=Topic.find(params[:id])
+    @topic.votes.last.try(:destroy)
+    redirect_to topics_path
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_topic
